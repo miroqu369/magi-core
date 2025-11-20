@@ -1,6 +1,5 @@
 'use strict';
 const express = require('express');
-
 global.app = express();
 global.app.use(express.json({ limit: '1mb' }));
 
