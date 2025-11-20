@@ -51,4 +51,31 @@ app.post('/api/stock/search', async (req, res) => {
   }
 });
 
+
+const { extractText } = require('./providers/cohere');
+
+app.post('/api/document/analyze', async (req, res) => {
+  try {
+    const { document } = req.body;
+    if (!document) return res.status(400).json({ error: 'document required' });
+    
+    console.log('📄 COHERE: テキスト抽出開始');
+    const extracted = await extractText(document);
+    
+    if (!extracted.ok) {
+      return res.status(500).json({ error: extracted.error });
+    }
+    
+    console.log('✅ COHERE: 抽出完了');
+    res.json({
+      provider: 'cohere',
+      model: 'command-r-plus',
+      ok: true,
+      summary: extracted.summary
+    });
+  } catch (e) {
+    console.error('❌ document/analyze error:', e.message);
+    res.status(500).json({ error: e.message });
+  }
+});
 module.exports = app;

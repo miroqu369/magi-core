@@ -8,6 +8,7 @@
   },
   "dependencies": {
     "@google-cloud/storage": "7.0.0",
+    "cohere-ai": "^7.19.0",
     "express": "^4.21.2",
     "multer": "1.4.5-lts.1",
     "node-fetch": "^3.3.2",
