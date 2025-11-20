@@ -24,14 +24,39 @@ const getStockData = async (ticker) => {
 };
 
 app.post('/api/consensus', async (req, res) => {
+  const { prompt, meta = {} } = req.body;
+  
+  if (!prompt) {
+    return res.status(400).json({ error: 'prompt is required' });
+  }
+
   try {
-    const { prompt } = req.body;
-    if (!prompt) return res.status(400).json({ error: 'prompt required' });
-    res.json({ final: `Analysis for: ${prompt.substring(0, 50)}` });
-  } catch (e) {
-    res.status(500).json({ error: e.message });
+    const consensusResult = await consensusFlow(prompt, meta);
+    const guardianResult = await guardianCheck(consensusResult, prompt, meta);
+
+    if (guardianResult.approved) {
+      return res.json({
+        ...consensusResult,
+        guardian: {
+          checked: true,
+          decision: guardianResult.guardian_result.decision,
+          reasons: guardianResult.guardian_result.reasons
+        }
+      });
+    } else {
+      return res.status(422).json({
+        error: 'Specification check failed',
+        guardian: guardianResult.guardian_result,
+        retry_instructions: guardianResult.retry_instructions,
+        original_output: consensusResult.final
+      });
+    }
+  } catch (error) {
+    console.error('Consensus error:', error);
+    res.status(500).json({ error: error.message });
   }
 });
+
 
 app.post('/api/stock/search', async (req, res) => {
   try {
